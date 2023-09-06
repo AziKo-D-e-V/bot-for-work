@@ -156,7 +156,9 @@ settingUpd.on(":text", async (ctx) => {
         reply_markup: keyboardEng,
       });
     }
+    ctx.session.step = "menu";
   }
+
 });
 
 const update = router.route("update");
@@ -172,13 +174,15 @@ update.on(":text", async (ctx) => {
     ctx.reply(ctx.t("menu"), {
       reply_markup: keyboardUz,
     });
+    ctx.session.step = "menu";
+
   } else {
     ctx.reply(ctx.t("upd"));
     ctx.reply(ctx.t("menu"), {
       reply_markup: keyboardEng,
     });
+    ctx.session.step = "menu";
   }
-  ctx.session.step = "menu";
 });
 
 module.exports = router;

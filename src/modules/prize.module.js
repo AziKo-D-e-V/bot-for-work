@@ -3,16 +3,32 @@ const router = new Router((ctx) => ctx.session.step);
 const {
   yesNokeyboard,
   yesNokeyboarduz,
-  ok,
+  keyboardUz,
+  keyboardEng,
 } = require("../helpers/contact");
 const userSchema = require("../models/User");
+const codeSchema = require("../models/code.model");
 const { InlineKeyboard, Keyboard } = require("grammy");
 const bot = require("./commands");
 
-const menu = router.route("menu");
-menu.callbackQuery("settings", async (ctx) => {
-  const lang = ctx.session.language;
+const Menu = router.route("menu");
 
+Menu.on(":text", async (ctx) => {
+  const lang = ctx.session.language;
+  if (lang === "uz") {
+    await ctx.i18n.useLocale("uz");
+    ctx.reply(ctx.t("menu"), {
+      reply_markup: keyboardUz,
+    });
+  } else {
+    ctx.reply(ctx.t("menu"), {
+      reply_markup: keyboardEng,
+    });
+  }
+});
+
+Menu.callbackQuery("settings", async (ctx) => {
+  const lang = ctx.session.language;
   const user_id = ctx.callbackQuery.from.id;
   const user = await userSchema.find({ user_id });
   ctx.session.user_id = user[0]._id;
@@ -37,7 +53,7 @@ menu.callbackQuery("settings", async (ctx) => {
   }
 });
 
-menu.callbackQuery("code", async (ctx) => {
+Menu.callbackQuery("code", async (ctx) => {
   const lang = ctx.session.language;
   if (lang === "uz") {
     await ctx.i18n.useLocale("uz");
@@ -52,28 +68,44 @@ menu.callbackQuery("code", async (ctx) => {
 const code = router.route("code");
 code.on(":text", async (ctx) => {
   try {
-    const text = ctx.message.text;
     const lang = ctx.session.language;
-    if (lang === "uz") {
-      await ctx.i18n.useLocale("uz");
-      ctx.reply(ctx.t("answercode"), {
-        reply_markup: ok,
-      });
+    const text = ctx.message.text;
 
-      ctx.session.step = "menu";
+    const checkCode = await codeSchema.find({ code: text });
+    if (checkCode.length < 1) {
+      if (lang === "uz") {
+        await ctx.i18n.useLocale("uz");
+        ctx.reply(ctx.t("notfound"));
+        ctx.session.step = "menu";
+      } else {
+        ctx.reply(ctx.t("notfound"));
+        ctx.session.step = "menu";
+      }
+    } else if (checkCode[0].product_name === "") {
+      if (lang === "uz") {
+        await ctx.i18n.useLocale("uz");
+        ctx.reply(ctx.t("answercode"));
+        ctx.session.step = "menu";
+      } else {
+        ctx.reply(ctx.t("answercode"));
+        ctx.session.step = "menu";
+      }
     } else {
-      ctx.reply(ctx.t("answercode"), {
-        reply_markup: ok,
-      });
-
-      ctx.session.step = "menu";
+      if (lang === "uz") {
+        await ctx.i18n.useLocale("uz");
+        ctx.reply(ctx.t("answercodeprize"));
+        ctx.session.step = "menu";
+      } else {
+        ctx.reply(ctx.t("answercodeprize"));
+        ctx.session.step = "menu";
+      }
     }
   } catch (error) {
     ctx.reply("404");
   }
 });
 
-code.callbackQuery('ok', async (ctx) => {
+code.callbackQuery("ok", async (ctx) => {
   console.log(ctx);
   const lang = ctx.session.language;
   if (lang === "uz") {
@@ -84,7 +116,7 @@ code.callbackQuery('ok', async (ctx) => {
   }
 });
 
-menu.callbackQuery("about", async (ctx) => {
+Menu.callbackQuery("about", async (ctx) => {
   ctx.reply(
     "Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot Bot"
   );

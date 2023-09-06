@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("../libs/jwt");
 const { generateHash, compareHash } = require("../libs/bcrypt");
 const config = require("../../../config");
+const codeSchema = require("../../models/code.model");
 
 const login = async (req, res, next) => {
   try {
@@ -32,6 +33,13 @@ const loginGet = async (req, res, next) => {
 const adminPage = async (req, res) => {
     res.render("index");
   };
+const codePage = async (req, res) => {
+  const getCode = await codeSchema.find();
+
+    res.render("code",{
+      Codes: getCode
+    });
+  };
 
 const admin = async (req, res, next) => {};
 
@@ -40,4 +48,5 @@ module.exports = {
   loginGet,
   admin,
   adminPage,
+  codePage
 };
